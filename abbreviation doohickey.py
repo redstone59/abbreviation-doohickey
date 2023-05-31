@@ -10,6 +10,7 @@ FILE=os.path.join(PATH,'abbreviations.json')
 shorthands_file=open(FILE)
 shorthands=json.loads(shorthands_file.read())
 del shorthands['_shortcut']
+shorthands_file.close()
 
 #Setting up abbreviations from json file (please dont crucify me for editing constants, hitting ctrl+h is hard)
 
