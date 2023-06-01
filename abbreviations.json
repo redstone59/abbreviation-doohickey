@@ -5,7 +5,7 @@
 
     "sect":["\\section{}",1,true],
     "ssect":["\\subsection{}",1,true],
-    "sssect":["\\subsubection{}",1,true],
+    "sssect":["\\subsubsection{}",1,true],
     "pg":["\\textbf{Page:} \\\\",2,true],
     "dt":["\\textbf{Date:} \\\\",2,true],
     "txt":["\\text{}",1,true],
