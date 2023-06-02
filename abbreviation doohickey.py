@@ -1,16 +1,30 @@
-import keyboard,time,threading,json,os
+import keyboard,time,threading,json,os,urllib.request
 from tkinter import filedialog #will be used to substitute the JSON file later
 
-VER="3.1" #there were a lot of iterations before uploading to github ok
+VER="3.2"
+
+#update checking
+
+update_available=True
+try:
+    #checking the first 9 characters of line 4, probably a far better way to do this but who knows!
+    with urllib.request.urlopen('https://raw.githubusercontent.com/redstone59/abbreviation-doohickey/main/abbreviation%20doohickey.py') as f:
+        web_ver=f.read().decode('utf-8').splitlines()[3][:9]
+        if web_ver==f'VER="{VER}"': update_available=False
+except:
+    print('Unable to check for updates.')
+    update_available=False
 
 #JSON file setup
 
 PATH=os.path.split(os.path.abspath(__file__))[0]
 FILE=os.path.join(PATH,'abbreviations.json')
-shorthands_file=open(FILE)
-shorthands=json.loads(shorthands_file.read())
-del shorthands['_shortcut']
-shorthands_file.close()
+with open(FILE) as shorthands_file:
+    shorthands=json.loads(shorthands_file.read())
+    try:
+        del shorthands['_shortcut']
+    except NameError:
+        pass
 
 #Setting up abbreviations from json file (please dont crucify me for editing constants, hitting ctrl+h is hard)
 
@@ -38,7 +52,7 @@ for x in END_LETTER_LIST:
     if x[-1] not in END_LETTERS: END_LETTERS+=[x[-1]]
 
 TOTAL_SPACE_LIST=SPACE_LIST+FUNC_LIST
-TOTAL_SPACE_LIST.reverse()
+TOTAL_SPACE_LIST.reverse() #prevents clashes with similar shortcuts if placed in order ('sect','ssect','sssect')
 
 longest=0
 for x in ABBREVIATION_LIST:
@@ -63,11 +77,13 @@ def check_on():
 
 def switch_alerts():
     g.can_alert=not g.can_alert
+    return g.can_alert
 
 def switch_on():
     g.is_on=not g.is_on
     if g.is_on: os.system("msg * Abbreviation Doohickey activated!")
     else: os.system("msg * Abbreviation Doohickey deactivated!")
+    return g.is_on
 
 def enclose(func:str): #time.sleep() used here because it seems to break without them?
     if not check_on(): return
@@ -86,6 +102,7 @@ ver -> Displays version number
 switch -> Switches abbreviations on or off.
 active -> Prints 'True' if LaTeX shortcuts are active
 alert -> Switches inactive reminders on or off
+repo -> Sends the link to the GitHub repo
 exit -> Leaves the program
 
 Hotkeys:
@@ -195,7 +212,8 @@ thread.start()
 
 #Basic console, can be subbed for tkinter interface probably. This works fine though.
 print(f"Abbreviation Doohickey v{VER} now active!")
-print("Find it on GitHub at https://github.com/redstone59/abbreviation-doohickey")
+if update_available: print("There is an update available! Download it at https://github.com/redstone59/abbreviation-doohickey")
+else: print("Find it on GitHub at https://github.com/redstone59/abbreviation-doohickey")
 print("Type 'exit' to leave, 'help' for a list of abbrevations, commands, and hotkeys.")
 while True:
     p=input(">>> ")
@@ -204,6 +222,6 @@ while True:
     if p=="ver": print(f'Current version: Abbreviation Doohickey v{VER}')
     if p=="switch": print(switch_on())
     if p=="active" or p=="on": print(check_on())
-    if p=="alert": switch_alerts(); print(g.can_alert)
+    if p=="alert": print(switch_alerts())
     if p=="repo" or p=="github": print("https://github.com/redstone59/abbreviation-doohickey")
 print("bai bai :3") #i gotta put a :3 somewhere ok
