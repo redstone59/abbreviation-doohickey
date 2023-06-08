@@ -1,13 +1,14 @@
 import keyboard,time,threading,json,os,urllib.request
 from tkinter import filedialog #will be used to substitute the JSON file later
 
-VER="3.2"
+VER="3.1"
 
-#update checking
+#update checking (does not work, removing functionality for now lmao
 
 update_available=True
 try:
     #checking the first 9 characters of line 4, probably a far better way to do this but who knows!
+    raise Exception #seeing if there is a fix with requests module - give me some time
     with urllib.request.urlopen('https://raw.githubusercontent.com/redstone59/abbreviation-doohickey/main/abbreviation%20doohickey.py') as f:
         web_ver=f.read().decode('utf-8').splitlines()[3][:9]
         if web_ver==f'VER="{VER}"': update_available=False
