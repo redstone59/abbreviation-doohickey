@@ -1,4 +1,4 @@
-VER="3.2"
+VER="3.2.2"
 import keyboard,time,threading,json,os,requests
 import tkinter as tk #JSON substition done, just need an editor now, although this might be slow now.
 from tkinter import filedialog
@@ -10,7 +10,7 @@ PATH=os.path.split(os.path.abspath(__file__))[0]
 
 update_available=True
 try:
-    #checking the first 9 characters of line 4, probably a far better way to do this but who knows!
+    #checking the first 9 characters of line 1, probably a far better way to do this but who knows!
     with requests.Session() as s:
         p = s.get('https://raw.githubusercontent.com/redstone59/abbreviation-doohickey/main/abbreviation%20doohickey.py')
         web_ver = p.text.splitlines()[0]
@@ -31,12 +31,21 @@ def open_json_abbreviations(directory):
 
     #Setting up abbreviations from json file (please dont crucify me for editing constants, hitting ctrl+h is hard)
 
-    g.func_list=g.shorthands['text_functions']
-    add_list=[]
-    for i in g.func_list:
-        add_list.append(i+'()')
-    g.func_list+=add_list
-    del g.shorthands['text_functions']
+    try:
+        g.func_list=g.shorthands['text_functions']
+        add_list=[]
+        for i in g.func_list:
+            add_list.append(i+'()')
+        g.func_list+=add_list
+        del g.shorthands['text_functions']
+    except NameError:
+        pass
+
+    try:
+        prefixes=g.shorthands['prefixes']
+        del g.shorthands['prefixes']
+    except NameError:
+        prefixes=[]
 
     for x in g.shorthands:
         i=g.shorthands[x]
@@ -46,15 +55,23 @@ def open_json_abbreviations(directory):
         else:
             g.end_letter_list+=[x]
 
+    add_list=[]
+    for x in prefixes:
+        if len(x)>1: print(f"Prefixes can only be one character long! {x} changed to {x[0]}")
+        g.prefixes+=[x[0]]
+        for i in g.abbreviation_list:
+            add_list.append(x[0]+i)
+
     for x in g.end_letter_list:
         if x[-1] not in g.end_letters: g.end_letters+=[x[-1]]
 
     g.total_space_list=g.space_list+g.func_list
-    g.total_space_list.reverse() #prevents clashes with similar shortcuts if placed in order ('sect','ssect','sssect')
 
     g.longest=0
     for x in g.abbreviation_list:
         if len(x)>g.longest: g.longest=len(x)
+    
+    g.abbreviation_list.reverse() #Prevents prefix clashes
 
 class global_class: #Used to share variables between threads. If there's a better way to do this, please inform me!
     is_on=True
@@ -74,6 +91,7 @@ class global_class: #Used to share variables between threads. If there's a bette
     end_letter_list=[]
     abbreviation_list=[]
     longest=0
+    prefixes=[]
     
     #tkinter queue
     tk_queue=[]
@@ -154,6 +172,7 @@ Ctrl+Shift+1 -> Auto-writes an align* section."""
         print(x)
         if x=="": continue
         keyboard.wait('space')
+        keyboard.send('backspace')
     print('\nSupported text functions:')
     print(', '.join(g.func_list))
     print('\nAbbreviations:')
@@ -163,6 +182,7 @@ Ctrl+Shift+1 -> Auto-writes an align* section."""
         print(f"{x} -> \'{expansion}\'"+left_text+".")
         if x=="": continue
         keyboard.wait('space')
+        keyboard.send('backspace')
         
 def text_func(function:str,has_brackets=False,sub=None,sup=None): #Subs function into \text{function} with optional \left(\right).
     left=0
@@ -180,13 +200,14 @@ def text_func(function:str,has_brackets=False,sub=None,sup=None): #Subs function
         left=7
     return left
 
-def abbreviate(x:str,has_space:bool): #Activates when an abbreviation is typed, substitutes the abbreviation with it's expansion.
+def abbreviate(x:str,has_space:bool,has_prefix:bool): #Activates when an abbreviation is typed, substitutes the abbreviation with it's expansion.
     if not check_on() or g.is_writing: return
     g.is_writing=True
     left=0
 
     length=len(x)
     if has_space: length+=1
+    if has_prefix: length+=1
 
     for i in range (length):
         keyboard.press_and_release('backspace')
@@ -224,10 +245,13 @@ def append(event:keyboard.KeyboardEvent): #logs the last keys and calls word lis
 
 def listener(): #checks for abbreviations, calls abbreviate() if abbreviation is found
     last_keys="".join(g.letter_list)
+    has_prefix=False
+    for x in g.prefixes:
+        if x in g.letter_list: has_prefix=True
     if len(g.key_list)>0 and g.key_list[-1] in g.end_letters:
         for x in g.end_letter_list:
             if len(g.key_list)>0 and last_keys.endswith(x):
-                abbreviate(x,False)
+                abbreviate(x,False,has_prefix)
                 g.key_list=[]
                 g.letter_list=[]
                 break
@@ -236,7 +260,7 @@ def listener(): #checks for abbreviations, calls abbreviate() if abbreviation is
             if last_keys.endswith(x):
                 for i in range (g.spaces):
                     keyboard.send('backspace')
-                abbreviate(x,True)
+                abbreviate(x,True,has_prefix)
                 g.key_list=[]
                 g.letter_list=[]
                 break
