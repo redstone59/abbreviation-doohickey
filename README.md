@@ -1,4 +1,3 @@
-# What?
 Python program that allows for keyboard abbreviations from a `.json` file.
 Originally designed for use in LaTeX note taking (minimising hand reaching and shift and arrow pressing), but can be used for other purposes.
 
