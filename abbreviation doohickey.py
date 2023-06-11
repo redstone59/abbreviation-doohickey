@@ -1,10 +1,11 @@
-VER="3.2.2"
-import keyboard,time,threading,json,os,requests
+VER="3.2.3"
+import keyboard,time,threading,json,os,requests,multiprocessing #TODO: switch threads to processes to speed up programs
 import tkinter as tk #JSON substition done, just need an editor now, although this might be slow now.
 from tkinter import filedialog
 from tkinter import messagebox
 
 PATH=os.path.split(os.path.abspath(__file__))[0]
+DISABLE_TK=False
 
 #update checking
 
@@ -73,7 +74,7 @@ def open_json_abbreviations(directory):
     
     g.abbreviation_list.reverse() #Prevents prefix clashes
 
-class global_class: #Used to share variables between threads. If there's a better way to do this, please inform me!
+class global_class: #Manager to share these variables between classes
     is_on=True
     is_google_doc=False
     is_writing=False
@@ -313,26 +314,27 @@ keyboard.add_hotkey('ctrl+shift+q',switch_on)
 keyboard.add_hotkey('ctrl+shift+1',lambda:enclose('align*'))
 keyboard.add_hotkey('ctrl+shift+2',lambda:enclose('itemize'))
 
-thread=threading.Thread(target=on_key,daemon=True)
-thread.start()
+if __name__ == '__main__':
+    thread=threading.Thread(target=on_key,daemon=True)
+    thread.start()
 
-gui_thread=threading.Thread(target=gui_function,daemon=True)
-gui_thread.start()
+    gui_thread=threading.Thread(target=gui_function,daemon=True)
+    if not DISABLE_TK: gui_thread.start()
 
-#Basic console, can be subbed for tkinter interface probably. This works fine though.
-print(f"Abbreviation Doohickey v{VER} now active!")
-if update_available: print("There is an update available! Download it at https://github.com/redstone59/abbreviation-doohickey")
-else: print("Find it on GitHub at https://github.com/redstone59/abbreviation-doohickey")
-print("Type 'exit' to leave, 'help' for a list of abbrevations, commands, and hotkeys.")
-while True:
-    p=input(">>> ")
-    if p=="exit": break
-    if p=="help": shortcut_list()
-    if p=="ver": print(f'Current version: Abbreviation Doohickey v{VER}')
-    if p=="switch": print(switch_on())
-    if p=="active" or p=="on": print(check_on())
-    if p=="alert": print(switch_alerts())
-    if p=="repo" or p=="github": print("https://github.com/redstone59/abbreviation-doohickey")
-    if p=="load": g.tk_queue+=[('load_file',None)]
-    if p=="file": print(g.recent)
-print("bai bai :3") #i gotta put a :3 somewhere ok
+    #Basic console, can be subbed for tkinter interface probably. This works fine though.
+    print(f"Abbreviation Doohickey v{VER} now active!")
+    if update_available: print("There is an update available! Download it at https://github.com/redstone59/abbreviation-doohickey")
+    else: print("Find it on GitHub at https://github.com/redstone59/abbreviation-doohickey")
+    print("Type 'exit' to leave, 'help' for a list of abbrevations, commands, and hotkeys.")
+    while True:
+        p=input(">>> ")
+        if p=="exit": break
+        if p=="help": shortcut_list()
+        if p=="ver": print(f'Current version: Abbreviation Doohickey v{VER}')
+        if p=="switch": print(switch_on())
+        if p=="active" or p=="on": print(check_on())
+        if p=="alert": print(switch_alerts())
+        if p=="repo" or p=="github": print("https://github.com/redstone59/abbreviation-doohickey")
+        if p=="load": g.tk_queue+=[('load_file',None)]
+        if p=="file": print(g.recent)
+    print("bai bai :3") #i gotta put a :3 somewhere ok
