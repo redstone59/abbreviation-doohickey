@@ -5,7 +5,7 @@ from tkinter import filedialog
 from tkinter import messagebox
 
 PATH=os.path.split(os.path.abspath(__file__))[0]
-DISABLE_TK=False
+DISABLE_TK=True
 
 #update checking
 
@@ -27,7 +27,7 @@ def open_json_abbreviations(directory):
         g.shorthands=json.loads(shorthands_file.read())
         try:
             del g.shorthands['_shortcut']
-        except NameError:
+        except KeyError:
             pass
 
     #Setting up abbreviations from json file (please dont crucify me for editing constants, hitting ctrl+h is hard)
@@ -39,13 +39,13 @@ def open_json_abbreviations(directory):
             add_list.append(i+'()')
         g.func_list+=add_list
         del g.shorthands['text_functions']
-    except NameError:
+    except KeyError:
         pass
 
     try:
         prefixes=g.shorthands['prefixes']
         del g.shorthands['prefixes']
-    except NameError:
+    except KeyError:
         prefixes=[]
 
     for x in g.shorthands:
